@@ -4,7 +4,7 @@
  */
 window.SHOP_CONFIG = {
     // 1. 車行名稱（顯示於網頁標題與頂端 Header）
-    shopName: "豆包車業",
+    shopName: "豆豆包車業",
     
     // 2. Google Apps Script 資料庫 API 網址
     apiUrl: "https://script.google.com/macros/s/AKfycbxInLVXyUoo99Q7sh7X8NXdHieCuKo8Uym5OPFJyIMvwoLuKobDz6lOP2eI-lFjbOQi/exec",
