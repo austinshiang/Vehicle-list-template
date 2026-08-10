@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>線上車源表系統</title>
+    <title>線上車源表系統 v6.7</title>
     
     <!-- iOS / Safari App settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -306,7 +306,6 @@
 </head>
 <body class="min-h-screen flex flex-col pb-12">
 
-    <!-- 解鎖屏 -->
     <div id="lock-screen" class="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center p-6 transition-all duration-500 overflow-y-auto">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-emerald-950/40 via-slate-950 to-slate-950 pointer-events-none z-0"></div>
         
@@ -377,11 +376,11 @@
                     </div>
                     <div>
                         <h1 class="text-xl md:text-2xl font-black text-slate-850 tracking-tighter">在庫車輛 <span id="header-shop-name" class="text-emerald-600">線上車源總表</span></h1>
-                        <p class="text-[10px] text-slate-400 font-bold tracking-wider mt-0.5 uppercase">Premium v5.7 </p>
+                        <p class="text-[10px] text-slate-400 font-bold tracking-wider mt-0.5 uppercase">Premium v6.7 </p>
                     </div>
                 </div>
                 <div class="flex gap-2 w-full md:w-auto">
-                    <!-- 預設顯示模式已改為紙本方磚模式 -->
+                    <!-- 預設顯示模式：紙本方磚模式 -->
                     <button id="btn-toggle-view" onclick="toggleView()" class="flex-1 md:flex-none bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-table-cells"></i> 紙本方磚模式
                     </button>
@@ -466,7 +465,6 @@
         </div>
     </main>
 
-    <!-- Detailed Vehicle Modal -->
     <div id="detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white border border-slate-200 max-w-3xl w-full rounded-3xl overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col transform scale-95 opacity-0 modal-transition" id="modal-card">
             <button onclick="closeModal()" class="close-btn absolute top-4 right-4 z-10 bg-white/80 hover:bg-white text-slate-500 hover:text-slate-800 w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:scale-105 active:scale-95 transition-all">
@@ -662,20 +660,20 @@
     </div>
 
     <footer class="mt-auto py-6 text-center text-xs text-slate-400 no-capture">
-        <p id="footer-text">© 車源管理系統. All Rights Reserved. 整合系統 v5.7</p>
+        <p id="footer-text">© 車源管理系統. All Rights Reserved. 整合系統 v6.7</p>
     </footer>
 
     <script>
         // 預設系統參數備份模式 (當未能載入 config.js 時使用)
         const defaultConfig = {
             shopName: "線上車源表",
-            apiUrl: "https://script.google.com/macros/s/AKfycby5wAruFNCLkPEy9yDLx9Rz1D_P93nyVptSJqHiTaK5C_YvIUA7jljjD01GdeqLjn_eWw/exec",
+            apiUrl: "https://script.google.com/macros/s/AKfycbw0GFMdyUxeOt-iiGzRNJOK6AudfOMD7DkUTcr_1z65YGhsoymaJjdTEYXKIJOrMbKa/exec",
             logoUrl: "https://raw.githubusercontent.com/austinshiang/Vehicle-Inventory-List/refs/heads/main/logogo.png",
             lockLogos: [
                 "https://raw.githubusercontent.com/austinshiang/Vehicle-Inventory-List/refs/heads/main/logogo.png"
             ],
             watermarkUrl: "https://images.1111.com.tw/oad/117197616.jpg",
-            footerText: "© 版權所有. All Rights Reserved. 整合系統 v5.7",
+            footerText: "© 版權所有. All Rights Reserved. 整合系統 v6.7",
             defaultPasscode: "8888"
         };
 
@@ -686,7 +684,7 @@
         let cars = [];
         let currentSelectedCar = null; 
         
-        // 【需求2修改】：預設顯示模式已調整為「紙本方磚模式」
+        // 預設顯示模式：紙本方磚模式
         let isListView = 'brick';
         
         let confidentialPricesVisible = false; 
@@ -822,7 +820,7 @@
         ];
 
         function applyShopBranding() {
-            document.title = `${shopConfig.shopName} - 線上車源表`;
+            document.title = `${shopConfig.shopName} - 線上車源表 v6.7`;
             
             const headerShopName = document.getElementById('header-shop-name');
             if (headerShopName) headerShopName.innerText = shopConfig.shopName;
@@ -1055,15 +1053,22 @@
                 if (!apiUrl || apiUrl.trim() === "") {
                     throw new Error("尚未設定 API 網址");
                 }
-                const res = await fetch(apiUrl);
-                cars = await res.json();
+
+                // 若之前已解鎖過，讀取儲存的密碼進行實時驗證請求
+                const savedPasscode = sessionStorage.getItem('garage_passcode') || "";
+                const requestUrl = savedPasscode ? `${apiUrl}?passcode=${encodeURIComponent(savedPasscode)}` : apiUrl;
+
+                const res = await fetch(requestUrl);
+                const data = await res.json();
                 
-                const passwordConfig = cars.find(c => c["編碼"] === "CONFIG_PASSWORD" || c["編碼"] === "CONFIG_PASSCODE");
-                if (passwordConfig) {
-                    const foundPassword = String(passwordConfig["備註"] || passwordConfig["型號"] || "").trim();
-                    if (foundPassword !== "") {
-                        correctPasscode = foundPassword;
-                    }
+                if (data && data.status === "error") {
+                    // 若舊密碼無效，清除已解鎖狀態
+                    sessionStorage.removeItem('garage_unlocked');
+                    sessionStorage.removeItem('garage_passcode');
+                    const rawRes = await fetch(apiUrl);
+                    cars = await rawRes.json();
+                } else {
+                    cars = Array.isArray(data) ? data : [];
                 }
 
                 updateDashboard();
@@ -1079,7 +1084,7 @@
             } catch (e) { 
                 console.warn("API 連線異常或預覽模式，啟用測試 Demo 數據：", e);
                 loadMockData(); 
-                document.getElementById('lock-status').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500"></i> 預覽示範模式 (解鎖密碼: ${correctPasscode})`;
+                document.getElementById('lock-status').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500"></i> 預覽示範模式`;
                 
                 const isUnlocked = sessionStorage.getItem('garage_unlocked') === 'true';
                 if (isUnlocked) {
@@ -1183,11 +1188,6 @@
                     "備註": "📣 全場公告：賞車人數較多，請全體業務成交後務必立刻將狀態改為「收訂」或「售出」，避免重複銷售！"
                 }
             ];
-            
-            const passwordConfig = cars.find(c => c["編碼"] === "CONFIG_PASSWORD" || c["編碼"] === "CONFIG_PASSCODE");
-            if (passwordConfig) {
-                correctPasscode = String(passwordConfig["備註"] || shopConfig.defaultPasscode).trim();
-            }
 
             updateDashboard();
             populateFilters();
@@ -1283,28 +1283,51 @@
             });
         }
 
-        function submitPasscode() {
+        async function submitPasscode() {
             const lockScreen = document.getElementById('lock-screen');
             const dotsWrapper = document.getElementById('passcode-dots-wrapper');
             const hiddenInput = document.getElementById('hidden-passcode-input');
             const lockStatus = document.getElementById('lock-status');
 
-            if (typedPasscode === correctPasscode) {
-                sessionStorage.setItem('garage_unlocked', 'true');
-                
-                lockStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 驗證成功！正在為您開啟展間`;
-                dotsWrapper.classList.add('border-emerald-500', 'bg-emerald-950/20');
+            lockStatus.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-emerald-500"></i> 正在連線伺服器驗證密碼...`;
 
-                setTimeout(() => {
-                    lockScreen.classList.add('opacity-0');
-                    document.body.style.overflow = '';
+            try {
+                // 發送給 GAS 後端進行實時密碼比對
+                const verifyUrl = `${apiUrl}?passcode=${encodeURIComponent(typedPasscode)}`;
+                const res = await fetch(verifyUrl);
+                const data = await res.json();
+
+                // 比對失敗處理 (後端回傳錯誤或在地備用比對失敗)
+                const isBackendValid = Array.isArray(data) && data.length > 0 && data.status !== "error";
+                const isLocalValid = (typedPasscode === correctPasscode);
+
+                if (isBackendValid || isLocalValid) {
+                    sessionStorage.setItem('garage_unlocked', 'true');
+                    sessionStorage.setItem('garage_passcode', typedPasscode);
+
+                    if (isBackendValid) {
+                        cars = data; // 更新為後端已解鎖之完整資料 (含真實底價)
+                        updateDashboard();
+                        populateFilters();
+                        render();
+                    }
+                    
+                    lockStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 驗證成功！正在為您開啟展間`;
+                    dotsWrapper.classList.add('border-emerald-500', 'bg-emerald-950/20');
+
                     setTimeout(() => {
-                        lockScreen.classList.add('hidden');
-                        checkTodayUpdates();
-                    }, 500);
-                }, 400);
+                        lockScreen.classList.add('opacity-0');
+                        document.body.style.overflow = '';
+                        setTimeout(() => {
+                            lockScreen.classList.add('hidden');
+                            checkTodayUpdates();
+                        }, 500);
+                    }, 400);
 
-            } else {
+                } else {
+                    throw new Error("INVALID_PASSCODE");
+                }
+            } catch (err) {
                 lockStatus.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-500"></i> 密碼錯誤，請重新輸入`;
                 dotsWrapper.classList.add('error-shake', 'border-rose-500', 'bg-rose-950/20');
                 
@@ -1341,8 +1364,18 @@
                 return soldDate === todayStr && car["販售狀態"] === "售出";
             });
 
-            const bulletinRow = cars.find(c => c["編碼"] === "CONFIG_BULLETIN");
-            const hasBulletin = bulletinRow && bulletinRow["備註"] && bulletinRow["備註"].trim() !== "";
+            // 尋找全列搜尋出的 CONFIG_BULLETIN 公告列 (不限欄位)
+            const bulletinRow = cars.find(c => {
+                if (!c) return false;
+                const code = String(c["編碼"] || "").toUpperCase();
+                return code === "CONFIG_BULLETIN" || code.indexOf("CONFIG_BULLETIN") !== -1;
+            });
+
+            let bulletinText = "";
+            if (bulletinRow) {
+                bulletinText = String(bulletinRow["備註"] || bulletinRow["型號"] || bulletinRow["廠牌"] || "").trim();
+            }
+            const hasBulletin = bulletinText !== "";
 
             if (newArrivals.length > 0 || newlyReserved.length > 0 || newlySold.length > 0 || hasBulletin) {
                 let updateHtml = `<div class="text-left text-sm space-y-4 max-h-[60vh] overflow-y-auto pr-1">`;
@@ -1353,7 +1386,7 @@
                             <h5 class="font-black text-amber-800 text-xs mb-1 uppercase tracking-wider flex items-center gap-1.5">
                                 <i class="fa-solid fa-bullhorn text-amber-600 animate-bounce"></i> 置頂業務公告
                             </h5>
-                            <p class="text-xs text-amber-900 leading-relaxed font-bold whitespace-pre-line">${escapeHtml(bulletinRow["備註"])}</p>
+                            <p class="text-xs text-amber-900 leading-relaxed font-bold whitespace-pre-line">${escapeHtml(bulletinText)}</p>
                         </div>
                     `;
                 }
@@ -1470,7 +1503,6 @@
             const toggleBtn = document.getElementById('btn-toggle-view');
             const watermarkBg = document.getElementById('watermark-bg');
 
-            // 循環順序：brick (紙本方磚) -> card (圖文卡片) -> list (清單總覽) -> brick
             if (isListView === 'brick') {
                 isListView = 'card';
                 toggleBtn.innerHTML = `<i class="fa-solid fa-image"></i> 圖文卡片模式`;
@@ -1662,7 +1694,7 @@
                 } else if (sortBy === "price-asc") {
                     const priceA = parseFloat(a["開價"]) || 0;
                     const priceB = parseFloat(b["開價"]) || 0;
-                    return priceA - priceA;
+                    return priceA - priceB;
                 } else if (sortBy === "date-asc") {
                     const dateA = parseDate(a["購入日期"]);
                     const dateB = parseDate(b["購入日期"]);
