@@ -7,14 +7,14 @@ window.SHOP_CONFIG = {
     shopName: "豆包車業",
     
     // 2. Google Apps Script 資料庫 API 網址
-    apiUrl: "https://script.google.com/macros/s/AKfycbxd1P2qxVZ_L2fVssPhIa2WlAicf4kvVqhlBdQE_UZCyGwB5BnPzHqCr4qNsibAF4XV/exec",
+    apiUrl: "https://script.google.com/macros/s/AKfycbxInLVXyUoo99Q7sh7X8NXdHieCuKo8Uym5OPFJyIMvwoLuKobDz6lOP2eI-lFjbOQi/exec",
     
     // 3. 主要品牌 Logo 圖片網址
     logoUrl: "https://storage.moegirl.org.cn/moegirl/commons/0/0d/%E8%B1%86%E5%8C%85AI.png",
     
     // 4. 鎖屏認證頁面的輪播 Logo 網址（可設定 1~3 張）
     lockLogos: [
-        "https://raw.githubusercontent.com/austinshiang/Vehicle-Inventory-List/refs/heads/main/logogo.png"
+        "https://storage.moegirl.org.cn/moegirl/commons/0/0d/%E8%B1%86%E5%8C%85AI.png"
     ],
     
     // 5. 背景浮水印圖片網址
