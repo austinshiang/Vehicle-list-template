@@ -4,13 +4,13 @@
  */
 window.SHOP_CONFIG = {
     // 1. 車行名稱（顯示於網頁標題與頂端 Header）
-    shopName: "姜駒車業",
+    shopName: "耶耶耶耶車業",
     
     // 2. Google Apps Script 資料庫 API 網址
     apiUrl: "https://script.google.com/macros/s/AKfycby5wAruFNCLkPEy9yDLx9Rz1D_P93nyVptSJqHiTaK5C_YvIUA7jljjD01GdeqLjn_eWw/exec",
     
     // 3. 主要品牌 Logo 圖片網址
-    logoUrl: "https://raw.githubusercontent.com/austinshiang/Vehicle-Inventory-List/refs/heads/main/logogo.png",
+    logoUrl: "https://storage.moegirl.org.cn/moegirl/commons/0/0d/%E8%B1%86%E5%8C%85AI.png",
     
     // 4. 鎖屏認證頁面的輪播 Logo 網址（可設定 1~3 張）
     lockLogos: [
