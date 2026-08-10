@@ -4,10 +4,10 @@
  */
 window.SHOP_CONFIG = {
     // 1. 車行名稱（顯示於網頁標題與頂端 Header）
-    shopName: "豆豆豆包車業",
+    shopName: "豆豆豆豆包車業",
     
     // 2. Google Apps Script 資料庫 API 網址
-    apiUrl: "https://script.google.com/macros/s/AKfycbyHsAqGx0fo7xv3AatE3aRSBkUqUHbn3zo1WwTSdNu2QJw2kvH5F8flo86KfAt4i6CP/exec",
+    apiUrl: "https://script.google.com/macros/s/AKfycbw0GFMdyUxeOt-iiGzRNJOK6AudfOMD7DkUTcr_1z65YGhsoymaJjdTEYXKIJOrMbKa/exec",
     
     // 3. 主要品牌 Logo 圖片網址
     logoUrl: "https://storage.moegirl.org.cn/moegirl/commons/0/0d/%E8%B1%86%E5%8C%85AI.png",
