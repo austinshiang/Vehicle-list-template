@@ -1071,6 +1071,13 @@
                     cars = Array.isArray(data) ? data : [];
                 }
 
+                // 自動從資料庫提取密碼設定 (若有)，提升後續登入驗證速度
+                const passRow = cars.find(c => c && String(c["編碼"] || "").toUpperCase().includes("CONFIG_PASSWORD"));
+                if (passRow) {
+                    const pw = String(passRow["備註"] || passRow["型號"] || passRow["廠牌"] || "").trim();
+                    if (pw) correctPasscode = pw;
+                }
+
                 updateDashboard();
                 populateFilters();
                 render();
@@ -1289,30 +1296,63 @@
             const hiddenInput = document.getElementById('hidden-passcode-input');
             const lockStatus = document.getElementById('lock-status');
 
+            // ⚡ 1. 優先本地快速比對：達成 0 秒秒解鎖，不阻塞 UI 體驗
+            const isLocalMatch = (typedPasscode === correctPasscode);
+
+            if (isLocalMatch) {
+                sessionStorage.setItem('garage_unlocked', 'true');
+                sessionStorage.setItem('garage_passcode', typedPasscode);
+
+                lockStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 驗證成功！正在開啟展間...`;
+                dotsWrapper.classList.add('border-emerald-500', 'bg-emerald-950/20');
+
+                // 立即淡出鎖屏，動畫縮短至 100ms 快速回應
+                setTimeout(() => {
+                    lockScreen.classList.add('opacity-0');
+                    document.body.style.overflow = '';
+                    setTimeout(() => {
+                        lockScreen.classList.add('hidden');
+                        checkTodayUpdates();
+                    }, 250);
+                }, 100);
+
+                // ⚡ 2. 背景非同步同步後端底價資料，完全不讓使用者等待
+                fetch(`${apiUrl}?passcode=${encodeURIComponent(typedPasscode)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (Array.isArray(data) && data.length > 0 && data.status !== "error") {
+                            cars = data;
+                            updateDashboard();
+                            populateFilters();
+                            render();
+                        }
+                    })
+                    .catch(err => console.warn("背景同步完整數據時發生異常：", err));
+
+                return;
+            }
+
+            // 若本地未匹配，才進行線上連線比對備援
             lockStatus.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-emerald-500"></i> 正在連線伺服器驗證密碼...`;
 
             try {
-                // 發送給 GAS 後端進行實時密碼比對
                 const verifyUrl = `${apiUrl}?passcode=${encodeURIComponent(typedPasscode)}`;
                 const res = await fetch(verifyUrl);
                 const data = await res.json();
 
-                // 比對失敗處理 (後端回傳錯誤或在地備用比對失敗)
                 const isBackendValid = Array.isArray(data) && data.length > 0 && data.status !== "error";
-                const isLocalValid = (typedPasscode === correctPasscode);
 
-                if (isBackendValid || isLocalValid) {
+                if (isBackendValid) {
+                    correctPasscode = typedPasscode;
                     sessionStorage.setItem('garage_unlocked', 'true');
                     sessionStorage.setItem('garage_passcode', typedPasscode);
 
-                    if (isBackendValid) {
-                        cars = data; // 更新為後端已解鎖之完整資料 (含真實底價)
-                        updateDashboard();
-                        populateFilters();
-                        render();
-                    }
-                    
-                    lockStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 驗證成功！正在為您開啟展間`;
+                    cars = data;
+                    updateDashboard();
+                    populateFilters();
+                    render();
+
+                    lockStatus.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> 驗證成功！正在開啟展間...`;
                     dotsWrapper.classList.add('border-emerald-500', 'bg-emerald-950/20');
 
                     setTimeout(() => {
@@ -1321,9 +1361,8 @@
                         setTimeout(() => {
                             lockScreen.classList.add('hidden');
                             checkTodayUpdates();
-                        }, 500);
-                    }, 400);
-
+                        }, 250);
+                    }, 100);
                 } else {
                     throw new Error("INVALID_PASSCODE");
                 }
